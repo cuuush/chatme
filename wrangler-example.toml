@@ -1,0 +1,10 @@
+name = "chatme"
+main = "index.js"
+compatibility_date = "2022-05-03"
+
+[vars]
+GROUP_ID = ""
+GROUPME_ACCESS_TOKEN = ""
+BOT_USER_ID = ""
+BOT_ID = ""
+OPENAI_TOKEN = ""

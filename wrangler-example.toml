@@ -8,3 +8,14 @@ GROUPME_ACCESS_TOKEN = ""
 BOT_USER_ID = ""
 BOT_ID = ""
 OPENAI_TOKEN = ""
+STARTER_PROMPT = "You are a helpful assistant."
+
+[env]
+    [env.dev] 
+        [env.dev.vars]
+            GROUP_ID = ""
+            GROUPME_ACCESS_TOKEN = ""
+            BOT_USER_ID = ""
+            BOT_ID = ""
+            OPENAI_TOKEN = ""
+            STARTER_PROMPT = "You are a helpful assistant."

@@ -3,6 +3,8 @@ export default {
 		async function getChatGPTResponse(conversation) {
 			const body = {
 				model: 'gpt-3.5-turbo',
+				temperature: 0.95,
+				max_tokens: 750,
 				messages: conversation,
 			};
 
@@ -18,7 +20,14 @@ export default {
 
 			const result = await response.json();
 
-			return result.choices[0].message.content;
+			const message = result.choices[0].message.content;
+
+			const substringsToReplace = ['an ai language model', 'an ai chatbot', 'a chatbot'];
+			const replacementString = 'a dinosaur';
+			const regex = new RegExp(substringsToReplace.join('|'), 'gi');
+			const newString = message.replace(regex, replacementString);
+
+			return newString;
 		}
 		function createChatFormat(conversation) {
 			let chatFormat = [];
@@ -44,7 +53,6 @@ export default {
 					},
 				];
 			}
-			console.log(body);
 			const init = {
 				method: 'POST',
 				headers: {
@@ -69,6 +77,25 @@ export default {
 			return json.response.message;
 		}
 
+		/**
+		 * This code gets the last message
+		 * From the GroupMe API
+		 * With a fetch and some JSON
+		 * It'll make sure you don't miss
+		 */
+		async function getLastGroupmeMessage() {
+			const init = {
+				headers: {
+					'X-Access-Token': env.GROUPME_ACCESS_TOKEN,
+				},
+			};
+			const url = `https://api.groupme.com/v3/groups/${env.GROUP_ID}/messages?limit=1`;
+			const response = await fetch(url, init);
+			const json = await response.json();
+
+			return json.response.messages[0];
+		}
+
 		async function recr_getResponseChain(attachments) {
 			let conversation = [];
 			for (const attachment of attachments) {
@@ -90,7 +117,6 @@ export default {
 		}
 
 		async function processGroupmeMessage(json) {
-			const starterPrompt = 'You are a helpful assistant named DinoBot.';
 			let conversation = [];
 			if (json.attachments.length > 0) {
 				conversation = await getResponseChain(json.attachments);
@@ -99,9 +125,30 @@ export default {
 			conversation.push([json.text, json.user_id]);
 
 			const chatFormat = createChatFormat(conversation);
-			chatFormat.unshift({ role: 'system', content: starterPrompt });
+			chatFormat.unshift({ role: 'system', content: env.STARTER_PROMPT });
+
 			const response = await getChatGPTResponse(chatFormat);
-			await postGroupmeMessage(response, json.id, json.user_id);
+
+			const maxLength = 1000;
+
+			if (response.length >= maxLength) {
+				// this splits up message into chunks of 1000 char without breaking up words
+				const messageList = response.match(/\b.{1,1000}\b/gs);
+				let replyingToBot = false;
+
+				for (const message of messageList) {
+					if (replyingToBot) {
+						let lastMessage = await getLastGroupmeMessage();
+						await postGroupmeMessage(message, lastMessage.id, lastMessage.user_id);
+					} else {
+						await postGroupmeMessage(message, json.id, json.user_id);
+						replyingToBot = true;
+					}
+				}
+			} else {
+				console.log('normal msg');
+				await postGroupmeMessage(response, json.id, json.user_id);
+			}
 		}
 
 		if (request.method === 'POST') {

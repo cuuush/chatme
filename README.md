@@ -16,6 +16,9 @@ a groupme chatbot for chatgpt!
 - Run `wrangler publish`
 - Add the URL displayed in the output as the bot's webhook url
 
+## Development
+
+you can use `wrangler dev --env=dev --local` to start this locally. if you fill out the dev vars in wrangler.toml, you can have the bot post to a different group when testing locally versus when you push to cloudflare.
 
 ## Issues
 

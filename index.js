@@ -1,10 +1,10 @@
 export default {
-	async fetch(request, env) {
+	async fetch(request, env, context) {
 		async function getChatGPTResponse(conversation) {
 			const body = {
-				model: 'gpt-3.5-turbo',
-				temperature: 0.95,
-				max_tokens: 750,
+				model: 'gpt-4',
+				temperature: 0.7,
+				max_tokens: 2000,
 				messages: conversation,
 			};
 
@@ -22,7 +22,14 @@ export default {
 
 			const message = result.choices[0].message.content;
 
-			const substringsToReplace = ['an ai language model', 'an ai chatbot', 'a chatbot'];
+			const substringsToReplace = [
+				'an ai language model',
+				'an ai chatbot',
+				'an ai assistant',
+				'a chatbot',
+				'a playful assistant',
+				'a virtual assistant',
+			];
 			const replacementString = 'a dinosaur';
 			const regex = new RegExp(substringsToReplace.join('|'), 'gi');
 			const newString = message.replace(regex, replacementString);
@@ -125,7 +132,24 @@ export default {
 			conversation.push([json.text, json.user_id]);
 
 			const chatFormat = createChatFormat(conversation);
-			chatFormat.unshift({ role: 'system', content: env.STARTER_PROMPT });
+			// chatgpt wrote the date part lol
+			const date = new Date();
+			const options = {
+				timeZone: 'America/New_York',
+				month: 'numeric',
+				day: 'numeric',
+				year: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric',
+				hour12: true,
+				timeZoneName: 'short',
+			};
+			const time = date.toLocaleString('en-US', options);
+
+			const starterPrompt =
+				env.STARTER_PROMPT +
+				`You are currently responding to a user named ${json.name}. The current date and time is ${time}`;
+			chatFormat.unshift({ role: 'system', content: starterPrompt });
 
 			const response = await getChatGPTResponse(chatFormat);
 
@@ -186,7 +210,7 @@ export default {
 					(words[1].includes('dinobot') && ['hey', 'hi', 'yo', 'hello'].includes(words[0]))
 				) {
 					console.log('command triggered');
-					await processGroupmeMessage(respJson);
+					context.waitUntil(processGroupmeMessage(respJson));
 				} else {
 					console.log('not triggered');
 				}

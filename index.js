@@ -4,7 +4,7 @@ export default {
 			const body = {
 				model: 'gpt-4',
 				temperature: 0.7,
-				max_tokens: 2000,
+				max_tokens: 4000,
 				messages: conversation,
 			};
 
@@ -20,7 +20,7 @@ export default {
 
 			const result = await response.json();
 
-			const message = result.choices[0].message.content;
+			let message = result.choices[0].message.content;
 
 			const substringsToReplace = [
 				'an ai language model',
@@ -31,10 +31,12 @@ export default {
 				'a virtual assistant',
 			];
 			const replacementString = 'a dinosaur';
-			const regex = new RegExp(substringsToReplace.join('|'), 'gi');
-			const newString = message.replace(regex, replacementString);
+			if (!env.CODECHAT) {
+				const regex = new RegExp(substringsToReplace.join('|'), 'gi');
+				message = message.replace(regex, replacementString);
+			}
 
-			return newString;
+			return message;
 		}
 		function createChatFormat(conversation) {
 			let chatFormat = [];
@@ -47,7 +49,7 @@ export default {
 
 		async function postGroupmeMessage(message, reply_id = False, reply_user = False) {
 			let body = {
-				bot_id: env.BOT_ID,
+				bot_id: env.BOT_TOKEN,
 				text: message,
 			};
 			if (reply_id && reply_user) {
@@ -207,7 +209,10 @@ export default {
 				if (
 					isAReply ||
 					words[0].includes('dinobot') ||
-					(words[1].includes('dinobot') && ['hey', 'hi', 'yo', 'hello'].includes(words[0]))
+					(words.length > 1 &&
+						words[1].includes('dinobot') &&
+						['hey', 'hi', 'yo', 'hello'].includes(words[0])) ||
+					env.CODECHAT
 				) {
 					console.log('command triggered');
 					context.waitUntil(processGroupmeMessage(respJson));

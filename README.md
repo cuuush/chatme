@@ -1,6 +1,6 @@
 # ChatMe
 
-a groupme chatbot for chatgpt!
+a chatgpt chatbot for groupme!
 
 ## Instructions
 

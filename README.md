@@ -13,7 +13,7 @@ a chatgpt chatbot for groupme!
   - GROUP_ID - The ID of the group that the bot will be in
   - GROUPME_ACCESS_TOKEN - Your groupme api key from [dev.groupme.com](https://dev.groupme.com/)
   - BOT_USER_ID - The user id of the bot. You can get this if you make the bot post a message and get the `user_id` paramater
-  - BOT_ID - The Bot ID found on [dev.groupme.com](https://dev.groupme.com/)
+  - BOT_TOKEN - The Bot ID found on [dev.groupme.com](https://dev.groupme.com/)
   - OPENAI_TOKEN - Your OpenAI API key 
 - Run `wrangler publish -e prod`
 - Add the URL displayed in the output as the bot's webhook url
